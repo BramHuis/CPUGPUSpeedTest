@@ -1,9 +1,6 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CalculateSineWave
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-
 RWStructuredBuffer<float3> waveBuffer;
 uint waveBufferLength;
 float amplitude = 1.1; // Height of the wave
@@ -13,11 +10,12 @@ float time;
 
 [numthreads(1024, 1, 1)]
 void CalculateSineWave (uint3 id : SV_DispatchThreadID) {
-    if (id.x >= waveBufferLength) return;
+    if (id.x >= waveBufferLength) return; // Return early if the threads wants to access data outside of the buffer
     
-    float3 position = waveBuffer[id.x];
-    float test = position.x  + position.y + position.z;
+    float3 position = waveBuffer[id.x]; // Retrieve the data point (a float3) from the buffer
+    float test = position.x  + position.y + position.z; // Do some extra calculation with the data to make it heavier to compute
 
+    // Put some data back into the compute buffer and do simple calculations to make it heavier
     waveBuffer[id.x].x = test * 0.51;
     waveBuffer[id.x].y = amplitude * sin(frequency * id.x * 0.1f + time * speed) + test;
     waveBuffer[id.x].z = test * 0.253;
