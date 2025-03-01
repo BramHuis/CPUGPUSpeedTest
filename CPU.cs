@@ -16,15 +16,17 @@ public class CPU : MonoBehaviour
     private float frequency = 1.2f; // Number of waves in a given space
     private float speed = 1.3f; // Controls wave movement over time
 
-    void InitializeArray() {
-        array = new Vector3[arraySize];
+    void Initialize() {
+        array = new Vector3[arraySize]; // Allocate memory for the array on the CPU
     }
 
     void SineWave() {
+        // Iterate over the array and do some mock calculations
         for (int i = 0; i < arraySize; i++) {
+            Vector3 arrayItem = array[i]; // Retrieve the data point (a float3) from the array
+            float test = arrayItem.x + arrayItem.y + arrayItem.z; // Do some extra calculation with the data to make it heavier to compute
             
-            Vector3 arrayItem = array[i];
-            float test = arrayItem.x + arrayItem.y + arrayItem.z;
+            // Put some data back into the compute buffer and do simple calculations to make it heavier
             array[i].x = test * 0.51f;
             array[i].y = amplitude * Mathf.Sin(frequency * i * 0.1f + Time.time * speed) + test;
             array[i].x = test * 0.253f;
@@ -32,10 +34,10 @@ public class CPU : MonoBehaviour
     }
 
     void Start() {
-        InitializeArray();
+        Initialize(); // Runs once at the start
     }
 
     void Update() {
-        SineWave();
+        SineWave(); // Runs as many times as possible
     }
 }
