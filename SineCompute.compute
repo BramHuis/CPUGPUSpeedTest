@@ -1,0 +1,24 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CalculateSineWave
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+RWStructuredBuffer<float3> waveBuffer;
+uint waveBufferLength;
+float amplitude = 1.1; // Height of the wave
+float frequency = 1.2; // Number of waves in a given space
+float speed = 1.3; // Controls wave speed
+float time;
+
+[numthreads(1024, 1, 1)]
+void CalculateSineWave (uint3 id : SV_DispatchThreadID) {
+    if (id.x >= waveBufferLength) return;
+    
+    float3 position = waveBuffer[id.x];
+    float test = position.x  + position.y + position.z;
+
+    waveBuffer[id.x].x = test * 0.51;
+    waveBuffer[id.x].y = amplitude * sin(frequency * id.x * 0.1f + time * speed) + test;
+    waveBuffer[id.x].z = test * 0.253;
+}
