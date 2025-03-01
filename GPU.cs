@@ -11,38 +11,39 @@ using UnityEngine;
 public class GPU : MonoBehaviour
 {
     Vector3[] array;
-    [SerializeField, Range(1, 67107840)] int arraySize;
-    [SerializeField] ComputeShader computeShader;
-    int kernelHandle;
     ComputeBuffer computeBuffer;
-    uint dispatchGroupSizeX;
+    [SerializeField] ComputeShader computeShader;
+    [SerializeField, Range(1, 67107840)] int arraySize;
+
+    int kernelHandle;
+    uint threadGroupSizeX;
     int dispatchSize;
 
     void Initialize() {
-        array = new Vector3[arraySize];
-        kernelHandle = computeShader.FindKernel("CalculateSineWave");
-        computeBuffer = new ComputeBuffer(arraySize, sizeof(float) * 3);
-        computeShader.SetBuffer(kernelHandle, "waveBuffer", computeBuffer);
-        computeBuffer.SetData(array);
-        computeShader.GetKernelThreadGroupSizes(kernelHandle, out dispatchGroupSizeX, out _, out _);
-        dispatchSize = Mathf.CeilToInt((float)arraySize / dispatchGroupSizeX);
+        array = new Vector3[arraySize]; // Allocate memory for the array on the CPU
+        kernelHandle = computeShader.FindKernel("CalculateSineWave"); // Get a kernel handle for the compute shader's CalculateSineWave function
+        computeBuffer = new ComputeBuffer(arraySize, sizeof(float) * 3); // Allocate memory for the array on the GPU
+        computeShader.SetBuffer(kernelHandle, "waveBuffer", computeBuffer); // Bind the compute buffer to the kernel handle
+        computeBuffer.SetData(array); // Set the data of the CPU side array to the GPU side buffer (array), even though the data is just mock data
+        computeShader.GetKernelThreadGroupSizes(kernelHandle, out threadGroupSizeX, out _, out _); // Retrieve the threadgroup size of the kernel in the compute shader 
+        dispatchSize = Mathf.CeilToInt((float)arraySize / threadGroupSizeX); // Calculate the number of threadgroups needed
+        computeShader.SetInt("waveBufferLength", arraySize); // Set the 'waveBufferLength' int on the compute shader to the array's length
     }
 
     void SineWave() {
-        computeShader.SetFloat("time", Time.time);
-        computeShader.SetInt("waveBufferLength", arraySize);
-        computeShader.Dispatch(kernelHandle, dispatchSize, 1, 1);
+        computeShader.SetFloat("time", Time.time); // Set the 'time' float on the compute shader to the time since startup of the application
+        computeShader.Dispatch(kernelHandle, dispatchSize, 1, 1); // Dispatch and run the shader with the correct dispatchSize
     }
 
     void Start() {
-        Initialize();
+        Initialize(); // Runs once at the start
     }
 
     void Update() {
-        SineWave();
+        SineWave(); // Runs as many times as possible
     }
 
     void OnDestroy() {
-        computeBuffer?.Dispose();
+        computeBuffer?.Dispose(); // Deallocate memory for the GPU buffer
     }
 }
